@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>請求書</title>
+    <link rel="stylesheet" href="invoice.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>領収書発行申請フォーム</h1>
+    <section id="kiyaku" title="約款同意" class="content_sections content_sections_active">
+        <div class="kiyaku_container">
+            <iframe src="kiyaku.html" width="100%" height="100%" style="border:none;"></iframe>
+        </div>
+        <button type="button" onClick="goForm()">規約に同意して進む</button>
+    </section>
+    <section id="form" title="入力フォーム" class="content_sections">
+        <p>必要事項を入力してください。全項目必須です。<br>
+        ※過去の日付の領収書は発行できません。</p>
+        <form id="invoice_form" action="#">
+        <div class="row">
+            <div class="cell">利用場所</div>
+            <div class="cell"><input type="text" name="place"></div>
+        </div>
+        <div class="row">
+            <div class="cell">金額</div>
+            <div class="cell"><input type="number" name="kingaku"></div>
+        </div>
+        <div class="row">
+            <div class="cell">名前</div>
+            <div class="cell"><input type="text" name="name"></div>
+        </div>
+        <div class="row">
+            <div class="cell">送付先</div>
+            <div class="cell"><input type="email" name="email"></div>
+        </div>
+        <button type="button" onClick="showConfirm()">発行申請する</button>
+        </form>
+    </section>
+    <section id="complete" title="完了" class="content_sections">
+        <p>請求書の発行が完了しました。<br>領収書はメールにて発送いたしました。このウィンドウを閉じてください。</p>
+    </section>
+    <div class="modal">
+        <div class="modal_content">
+            <div class="modal_header">
+                <span class="close" onClick="closeModal()">&times;</span>
+                <h2>請求書</h2>
+            </div>
+            <div class="modal_body">
+                <p>こちらの内容で発行申請しますか？</p>
+            </div>
+            <div class="modal_footer">
+                <button type="button" class="btn" onClick="submitForm()">発行</button>
+                <button type="button" class="btn" onClick="closeModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+const url = 'https://rqopkcftnc.execute-api.ap-northeast-1.amazonaws.com/prod/invoice/';
+const apiKey = 'Your API Key';
+
+const goForm = () => {
+    document.getElementById('kiyaku').classList.remove('content_sections_active');;
+    document.getElementById('form').classList.add('content_sections_active');
+}
+const showConfirm = async () => {
+    const validateForm = await validateFormIsNotNull()
+    console.log("validateForm", validateForm); 
+    if(validateForm){
+        document.querySelector('.modal').style.display = 'block';
+    }
+}
+const closeModal = () => {
+    document.querySelector('.modal').style.display = 'none';
+}
+const submitFormFunc = async () => {
+    const form = document.getElementById('form');
+    const data = {
+        email: document.querySelector('input[name="email"]').value, // 送信先のメールアドレスを指定
+        price: document.querySelector('input[name="kingaku"]').value, // 金額(税込）を指定
+        method: "email", // email / phoneのいずれかを指定します。
+        paymethod: "credit", // cashまたはcreditを指定
+        name: document.querySelector('input[name="name"]').value, // 送付先の名前（領収書に記載）を指定
+        tadashi: `${document.querySelector('input[name="place"]').value || ""}ご利用代金として` // 但し書の内容を指定
+    }
+    const response = await fetch(url, {
+        method: 'POST',
+        body: data,
+        headers: {
+            'x-api-key': apiKey
+        }
+    });
+    return response.ok;
+}
+const validateFormIsNotNull = async () => {
+    const form = document.getElementById('invoice_form');
+    const inputs = form.querySelectorAll('input');
+    const validate = await new Promise((resolve, reject) => {
+        let err = false;
+        for(let i = 0; i < inputs.length; i++){
+            console.log(inputs[i].value);
+            if(inputs[i].value === ''){
+                err = true;
+                inputs[i].classList.add('error');
+            } else {
+                if(inputs[i].classList.contains('error')){
+                    inputs[i].classList.remove('error');
+                }
+            }
+            if(i === inputs.length - 1){
+                resolve(err);
+            }
+        }
+    });
+    return validate ? false : true;
+}
+const submitForm = async () => {
+    const submitOperation = await submitFormFunc();
+    if(submitOperation){
+        document.getElementById('form').classList.remove('content_sections_active');
+        document.getElementById('complete').classList.add('content_sections_active');
+        closeModal();
+    } else {
+        alert('エラーが発生しました。');
+    }
+}
+</script>
+<style>
+.kiyaku_container{
+    width: 100%;
+    height: 100px;
+    overflow-y: scroll;
+    background-color: #f0f0f0;
+    text-align: center;
+    padding-top: 100px;
+}
+.content_sections{
+    display: none;
+}
+.content_sections_active{
+    display: block;
+}
+.row{
+    display: table-row;
+}
+.cell{
+    display: table-cell;
+    padding: 5px;
+}
+@media screen and (max-width: 600px){
+    .row{
+        display: block;
+        box-sizing: content-box;
+    }
+    .cell{
+        display: block;
+        box-sizing: content-box;
+    }
+    .cell > input{
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        font-size: 20px;
+    }
+}   
+.modal{
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+.modal_content{
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+.error{
+    border: 1px solid red;
+}
+</style>
+</html>
