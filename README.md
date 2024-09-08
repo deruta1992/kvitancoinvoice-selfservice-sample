@@ -9,7 +9,7 @@ kvitanco Invoice ( [https://invoice.kvitanco.biz/](https://invoice.kvitanco.biz/
 ## 使用方法（ご自身で対応される場合）
 - 本リポジトリをダウンロードします（Download ZIPで問題ありません）  
 - 事前準備を行います。  
-　- .envファイルを開き、TOKENの値を変更します。  
+　- index.htmlファイルを開き、apiKeyの値を変更します。  
 　- kiyaku.htmlの内容を、領収書発行申請者向けにご用意いただきます  
   　発行事業者情報や、申請内容が虚偽だった場合の対応、汎用的なお問い合わせ先などを記載するケースが多いです。  
 - フォルダの中身一式を、FTPなどでご自身の使用したいホスティング先にアップロードしてください。  
