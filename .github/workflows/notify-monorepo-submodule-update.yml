@@ -1,0 +1,20 @@
+name: Notify Monorepo Submodule Update
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger monorepo submodule update workflow
+      env:
+        GH_TOKEN: ${{ secrets.MONOREPO_DISPATCH_TOKEN }}
+      run: |
+        gh workflow run update-submodules.yml --repo kvitanco/kvitanco-monorepo
